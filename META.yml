@@ -1,6 +1,6 @@
 ---
 name: DBIx-Class-DigestColumns
-version: 0.00001
+version: 0.01000
 author:
   - 'Tom Kirkpatrick (tkp) <tkp@cpan.org>'
 abstract: Automatic digest columns
@@ -26,7 +26,7 @@ recommends:
 provides:
   DBIx::Class::DigestColumns:
     file: lib/DBIx/Class/DigestColumns.pm
-    version: 0.00001
+    version: 0.01000
 generated_by: Module::Build version 0.28
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.2.html

@@ -2,21 +2,31 @@ NAME
     DBIx::Class::DigestColumns - Automatic digest columns
 
 SYNOPSIS
-    In your "DBIx::Class" table class:
+    In your DBIx::Class table class:
 
       __PACKAGE__->load_components(qw/DigestColumns .../);
+
+      __PACKAGE__->digestcolumns(
+          columns   => [qw/ password /],
+          algorithm => 'MD5',
+          encoding  => 'base64',
+          auto      => 1,
+      );
+
+    Alternatively you could call each method individually
 
       __PACKAGE__->digest_columns(qw/ password /);
       __PACKAGE__->digest_algorithm('MD5');
       __PACKAGE__->digest_encoding('base64');
+      __PACKAGE__->digest_auto(1);
 
     Note that the component needs to be loaded before Core.
 
 DESCRIPTION
-    This "DBIx::Class" component can be used to automatically insert a
-    message digest of selected columns. By default DigestColumns will use
-    "Digest::MD5" to insert a 128-bit hexadecimal message digest of the
-    column value.
+    This DBIx::Class component can be used to automatically insert a message
+    digest of selected columns. By default DigestColumns will use
+    Digest::MD5 to insert a 128-bit hexadecimal message digest of the column
+    value.
 
     The length of the inserted string will be 32 and it will only contain
     characters from this set: '0'..'9' and 'a'..'f'.
@@ -27,16 +37,30 @@ DESCRIPTION
       __PACKAGE__->digest_algorithm('SHA-1');
 
 METHODS
-  digest_columns(@columns)
+  digestcolumns
+      __PACKAGE__->digestcolumns(
+          columns   => [qw/ password /],
+          algorithm => $algorithm',
+          encoding  => $encoding,
+          auto      => 1,
+      );
+
+    Calls "digest_columns", "digest_algorithm", and "digest_encoding" and
+    "digest_auto" if the corresponding argument is defined.
+
+  digest_columns
     Takes a list of columns to be convert to a message digest during insert.
 
       __PACKAGE__->digest_columns(qw/ password /);
 
-  digest_algorithm($classname)
+  digest_algorithm
     Takes the name of a digest algorithm to be used to calculate the message
     digest.
 
       __PACKAGE__->digest_algorithm('SHA-1');
+
+    If a suitible digest module could not be loaded an exception will be
+    thrown.
 
     Supported digest algorithms are:
 
@@ -55,9 +79,9 @@ METHODS
       Whirlpool
       Adler-32
 
-    digest_algorithm defaults to MD5.
+    digest_algorithm defaults to "MD5".
 
-  digest_encoding($encoding)
+  digest_encoding
     Selects the encoding to use for the message digest.
 
       __PACKAGE__->digest_encoding('base64');
@@ -68,10 +92,10 @@ METHODS
       hex
       base64
 
-    digest_encoding defaults to hex.
+    digest_encoding defaults to "hex".
 
-  digest_auto()
-      __PACKAGE__->digest_auto( 1 );
+  digest_auto
+      __PACKAGE__->digest_auto(1);
 
     Turns on and off automatic digest columns. When on, this feature makes
     all UPDATEs and INSERTs automatically insert a message digest of
@@ -80,13 +104,13 @@ METHODS
     The default is for digest_auto is to be on.
 
 EXTENDED METHODS
-    The following "DBIx::Class::Row" methods are extended by this module:-
+    The following DBIx::Class::Row methods are extended by this module:-
 
     insert
     update
 
 SEE ALSO
-    "DBIx::Class", "Digest"
+    DBIx::Class, Digest
 
 AUTHOR
     Tom Kirkpatrick (tkp) <tkp@cpan.org>

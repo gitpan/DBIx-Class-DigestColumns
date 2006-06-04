@@ -19,7 +19,7 @@ __PACKAGE__->digest_encoding('hex');
 # i.e. first release of 0.XX *must* be 0.XX000. This avoids fBSD ports
 # brain damage and presumably various other packaging systems too
 
-$VERSION = '0.00001';
+$VERSION = '0.01000';
 
 =head1 NAME
 
@@ -27,34 +27,67 @@ DBIx::Class::DigestColumns - Automatic digest columns
 
 =head1 SYNOPSIS
 
-In your L<"DBIx::Class"> table class:
+In your L<DBIx::Class> table class:
 
   __PACKAGE__->load_components(qw/DigestColumns .../);
+
+  __PACKAGE__->digestcolumns(
+      columns   => [qw/ password /],
+      algorithm => 'MD5',
+      encoding  => 'base64',
+      auto      => 1,
+  );
+
+Alternatively you could call each method individually  
 
   __PACKAGE__->digest_columns(qw/ password /);
   __PACKAGE__->digest_algorithm('MD5');
   __PACKAGE__->digest_encoding('base64');
+  __PACKAGE__->digest_auto(1);
 
 Note that the component needs to be loaded before Core.
 
 =head1 DESCRIPTION
 
-This L<"DBIx::Class"> component can be used to automatically insert a message
+This L<DBIx::Class> component can be used to automatically insert a message
 digest of selected columns. By default DigestColumns will use
-L<"Digest::MD5"> to insert a 128-bit hexadecimal message digest of the column
+L<Digest::MD5> to insert a 128-bit hexadecimal message digest of the column
 value.
 
 The length of the inserted string will be 32 and it will only contain characters
 from this set: '0'..'9' and 'a'..'f'.
 
 If you would like to use a specific digest module to create your message
-digest, you can set L<"digest_algorithm">:
+digest, you can set L</digest_algorithm>:
 
   __PACKAGE__->digest_algorithm('SHA-1');
 
 =head1 METHODS
 
-=head2 digest_columns(@columns)
+=head2 digestcolumns
+
+  __PACKAGE__->digestcolumns(
+      columns   => [qw/ password /],
+      algorithm => $algorithm',
+      encoding  => $encoding,
+      auto      => 1,
+  );
+
+Calls L</digest_columns>, L</digest_algorithm>, and L</digest_encoding> and L</digest_auto> if the corresponding argument is defined.
+
+=cut
+
+sub digestcolumns {
+    my $self = shift;
+    my %args = @_;
+    
+    $self->digest_columns( $args{columns} ) if exists $args{columns};
+    $self->digest_algorithm( $args{algorithm} ) if exists $args{algorithm};
+    $self->digest_encoding( $args{encoding} ) if exists $args{encoding};
+    $self->digest_auto( $args{auto} ) if exists $args{auto};
+}
+
+=head2 digest_columns
 
 Takes a list of columns to be convert to a message digest during insert.
 
@@ -70,11 +103,13 @@ sub digest_columns {
     $self->digest_auto_columns(\@_);
 }
 
-=head2 digest_algorithm($classname)
+=head2 digest_algorithm
 
 Takes the name of a digest algorithm to be used to calculate the message digest.
 
   __PACKAGE__->digest_algorithm('SHA-1');
+
+If a suitible digest module could not be loaded an exception will be thrown.
 
 Supported digest algorithms are:
 
@@ -93,7 +128,7 @@ Supported digest algorithms are:
   Whirlpool
   Adler-32
 
-digest_algorithm defaults to MD5.
+digest_algorithm defaults to C<MD5>.
 
 =cut
 
@@ -110,7 +145,7 @@ sub digest_algorithm {
     return ref $self->digest_maker;
 }
 
-=head2 digest_encoding($encoding)
+=head2 digest_encoding
 
 Selects the encoding to use for the message digest.
 
@@ -122,7 +157,7 @@ Possilbe encoding schemes are:
   hex
   base64
 
-digest_encoding defaults to hex.
+digest_encoding defaults to C<hex>.
 
 =cut
 
@@ -138,7 +173,7 @@ sub digest_encoding {
 	return $self->encoding;
 }
 
-sub get_digest_string {
+sub _get_digest_string {
 	my ($self, $value) = @_;
 	my $digest_string;
 	
@@ -159,9 +194,9 @@ sub get_digest_string {
 	return $digest_string;
 }
 
-=head2 digest_auto()
+=head2 digest_auto
 
-  __PACKAGE__->digest_auto( 1 );
+  __PACKAGE__->digest_auto(1);
 
 Turns on and off automatic digest columns.  When on, this feature makes all
 UPDATEs and INSERTs automatically insert a message digest of selected columns.
@@ -170,7 +205,7 @@ The default is for digest_auto is to be on.
 
 =head1 EXTENDED METHODS
 
-The following L<"DBIx::Class::Row"> methods are extended by this module:-
+The following L<DBIx::Class::Row> methods are extended by this module:-
 
 =over 4
 
@@ -182,7 +217,7 @@ sub insert {
     my $self = shift;
     if ($self->digest_auto) {
         for my $column (@{$self->digest_auto_columns}) {
-            $self->set_column( $column, $self->get_digest_string($self->get_column( $column )) )
+            $self->set_column( $column, $self->_get_digest_string($self->get_column( $column )) )
                 if defined $self->get_column( $column );
         }
     }
@@ -197,7 +232,7 @@ sub update {
     my $self = shift;
     if ($self->digest_auto) {
 		for my $column (@{$self->digest_auto_columns}) {
-			$self->set_column( $column, $self->get_digest_string($self->get_column( $column )) )
+			$self->set_column( $column, $self->_get_digest_string($self->get_column( $column )) )
 				if defined $self->get_column( $column );
 		}
 	}
@@ -211,8 +246,8 @@ __END__
 
 =head1 SEE ALSO
 
-L<"DBIx::Class">,
-L<"Digest">
+L<DBIx::Class>,
+L<Digest>
 
 =head1 AUTHOR
 
