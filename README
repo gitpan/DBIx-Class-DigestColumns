@@ -1,0 +1,96 @@
+NAME
+    DBIx::Class::DigestColumns - Automatic digest columns
+
+SYNOPSIS
+    In your "DBIx::Class" table class:
+
+      __PACKAGE__->load_components(qw/DigestColumns .../);
+
+      __PACKAGE__->digest_columns(qw/ password /);
+      __PACKAGE__->digest_algorithm('MD5');
+      __PACKAGE__->digest_encoding('base64');
+
+    Note that the component needs to be loaded before Core.
+
+DESCRIPTION
+    This "DBIx::Class" component can be used to automatically insert a
+    message digest of selected columns. By default DigestColumns will use
+    "Digest::MD5" to insert a 128-bit hexadecimal message digest of the
+    column value.
+
+    The length of the inserted string will be 32 and it will only contain
+    characters from this set: '0'..'9' and 'a'..'f'.
+
+    If you would like to use a specific digest module to create your message
+    digest, you can set "digest_algorithm":
+
+      __PACKAGE__->digest_algorithm('SHA-1');
+
+METHODS
+  digest_columns(@columns)
+    Takes a list of columns to be convert to a message digest during insert.
+
+      __PACKAGE__->digest_columns(qw/ password /);
+
+  digest_algorithm($classname)
+    Takes the name of a digest algorithm to be used to calculate the message
+    digest.
+
+      __PACKAGE__->digest_algorithm('SHA-1');
+
+    Supported digest algorithms are:
+
+      MD5
+      MD4
+      MD2
+      SHA-1
+      SHA-256
+      SHA-384
+      SHA-512
+      CRC-16
+      CRC-32
+      CRC-CCITT
+      HMAC-SHA-1
+      HMAC-MD5
+      Whirlpool
+      Adler-32
+
+    digest_algorithm defaults to MD5.
+
+  digest_encoding($encoding)
+    Selects the encoding to use for the message digest.
+
+      __PACKAGE__->digest_encoding('base64');
+
+    Possilbe encoding schemes are:
+
+      binary
+      hex
+      base64
+
+    digest_encoding defaults to hex.
+
+  digest_auto()
+      __PACKAGE__->digest_auto( 1 );
+
+    Turns on and off automatic digest columns. When on, this feature makes
+    all UPDATEs and INSERTs automatically insert a message digest of
+    selected columns.
+
+    The default is for digest_auto is to be on.
+
+EXTENDED METHODS
+    The following "DBIx::Class::Row" methods are extended by this module:-
+
+    insert
+    update
+
+SEE ALSO
+    "DBIx::Class", "Digest"
+
+AUTHOR
+    Tom Kirkpatrick (tkp) <tkp@cpan.org>
+
+LICENSE
+    You may distribute this code under the same terms as Perl itself.
+
