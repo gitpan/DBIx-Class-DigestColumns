@@ -19,7 +19,7 @@ __PACKAGE__->digest_encoding('hex');
 # i.e. first release of 0.XX *must* be 0.XX000. This avoids fBSD ports
 # brain damage and presumably various other packaging systems too
 
-$VERSION = '0.01000';
+$VERSION = '0.02000';
 
 =head1 NAME
 
@@ -29,7 +29,7 @@ DBIx::Class::DigestColumns - Automatic digest columns
 
 In your L<DBIx::Class> table class:
 
-  __PACKAGE__->load_components(qw/DigestColumns .../);
+  __PACKAGE__->load_components(qw/DigestColumns ... Core/);
 
   __PACKAGE__->digestcolumns(
       columns   => [qw/ password /],
@@ -38,6 +38,8 @@ In your L<DBIx::Class> table class:
       auto      => 1,
   );
 
+B<Note:> The component needs to be loaded I<before> Core.
+
 Alternatively you could call each method individually  
 
   __PACKAGE__->digest_columns(qw/ password /);
@@ -45,7 +47,7 @@ Alternatively you could call each method individually
   __PACKAGE__->digest_encoding('base64');
   __PACKAGE__->digest_auto(1);
 
-Note that the component needs to be loaded before Core.
+
 
 =head1 DESCRIPTION
 
@@ -73,15 +75,15 @@ digest, you can set L</digest_algorithm>:
       auto      => 1,
   );
 
-Calls L</digest_columns>, L</digest_algorithm>, and L</digest_encoding> and L</digest_auto> if the corresponding argument is defined.
+Calls L</digest_columns>, L</digest_algorithm>, and L</digest_encoding> and L</digest_auto> if the
+corresponding argument is defined.
 
 =cut
 
 sub digestcolumns {
     my $self = shift;
     my %args = @_;
-    
-    $self->digest_columns( $args{columns} ) if exists $args{columns};
+    $self->digest_columns( @{$args{columns}} ) if exists $args{columns};
     $self->digest_algorithm( $args{algorithm} ) if exists $args{algorithm};
     $self->digest_encoding( $args{encoding} ) if exists $args{encoding};
     $self->digest_auto( $args{auto} ) if exists $args{auto};
@@ -137,7 +139,7 @@ sub digest_algorithm {
 
     if ($class) {
         if (!eval { Digest->new($class) }) {
-        	$self->throw_exception("$class could not be used as a digest algorithm: $@");       	
+            $self->throw_exception("$class could not be used as a digest algorithm: $@");           
         } else {
             $self->digest_maker(Digest->new($class));
         };
@@ -164,34 +166,34 @@ digest_encoding defaults to C<hex>.
 sub digest_encoding {
     my ($self, $encoding) = @_;
     if ($encoding) {
-    	if ($encoding =~ /^(binary)|(hex)|(base64)$/) {
-			$self->encoding($encoding);	
-		} else {
-			$self->throw_exception("$encoding is not a supported encoding scheme");
-		};
-	};
-	return $self->encoding;
+        if ($encoding =~ /^(?:binary|hex|base64)$/) {
+            $self->encoding($encoding); 
+        } else {
+            $self->throw_exception("$encoding is not a supported encoding scheme");
+        };
+    };
+    return $self->encoding;
 }
 
 sub _get_digest_string {
-	my ($self, $value) = @_;
-	my $digest_string;
-	
-	$self->digest_maker->add($value);
+    my ($self, $value) = @_;
+    my $digest_string;
+    
+    $self->digest_maker->add($value);
 
-	if ($self->encoding eq 'binary') {
-		$digest_string = eval { $self->digest_maker->digest };
-	
-	} elsif ($self->encoding eq 'hex') {
-		$digest_string = eval { $self->digest_maker->hexdigest };
-	
-	} else {
-		$digest_string = eval { $self->digest_maker->b64digest }
-								|| eval { $self->digest_maker->base64digest };
-	};
-	
-	$self->throw_exception("could not get a digest string: $@") unless defined( $digest_string );
-	return $digest_string;
+    if ($self->encoding eq 'binary') {
+        $digest_string = eval { $self->digest_maker->digest };
+    
+    } elsif ($self->encoding eq 'hex') {
+        $digest_string = eval { $self->digest_maker->hexdigest };
+    
+    } else {
+        $digest_string = eval { $self->digest_maker->b64digest } || eval {
+$self->digest_maker->base64digest };
+    };
+    
+    $self->throw_exception("could not get a digest string: $@") unless defined( $digest_string );
+    return $digest_string;
 }
 
 =head2 digest_auto
@@ -231,11 +233,11 @@ sub insert {
 sub update {
     my $self = shift;
     if ($self->digest_auto) {
-		for my $column (@{$self->digest_auto_columns}) {
-			$self->set_column( $column, $self->_get_digest_string($self->get_column( $column )) )
-				if defined $self->get_column( $column );
-		}
-	}
+        for my $column (@{$self->digest_auto_columns}) {
+            $self->set_column( $column, $self->_get_digest_string($self->get_column( $column )) )
+                if defined $self->get_column( $column );
+        }
+    }
     $self->next::method(@_);
 }
 

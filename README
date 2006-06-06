@@ -4,7 +4,7 @@ NAME
 SYNOPSIS
     In your DBIx::Class table class:
 
-      __PACKAGE__->load_components(qw/DigestColumns .../);
+      __PACKAGE__->load_components(qw/DigestColumns ... Core/);
 
       __PACKAGE__->digestcolumns(
           columns   => [qw/ password /],
@@ -13,14 +13,14 @@ SYNOPSIS
           auto      => 1,
       );
 
+    Note: The component needs to be loaded *before* Core.
+
     Alternatively you could call each method individually
 
       __PACKAGE__->digest_columns(qw/ password /);
       __PACKAGE__->digest_algorithm('MD5');
       __PACKAGE__->digest_encoding('base64');
       __PACKAGE__->digest_auto(1);
-
-    Note that the component needs to be loaded before Core.
 
 DESCRIPTION
     This DBIx::Class component can be used to automatically insert a message
