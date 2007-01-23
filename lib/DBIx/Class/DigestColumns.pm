@@ -9,6 +9,7 @@ use Digest;
 
 __PACKAGE__->mk_classdata( 'digest_auto_columns' => [] );
 __PACKAGE__->mk_classdata( 'digest_auto' => 1 );
+__PACKAGE__->mk_classdata( 'digest_dirty' => 0 );
 __PACKAGE__->mk_classdata( 'digest_maker' );
 __PACKAGE__->mk_classdata( 'encoding' );
 
@@ -19,7 +20,7 @@ __PACKAGE__->digest_encoding('hex');
 # i.e. first release of 0.XX *must* be 0.XX000. This avoids fBSD ports
 # brain damage and presumably various other packaging systems too
 
-$VERSION = '0.02000';
+$VERSION = '0.03000';
 
 =head1 NAME
 
@@ -35,6 +36,7 @@ In your L<DBIx::Class> table class:
       columns   => [qw/ password /],
       algorithm => 'MD5',
       encoding  => 'base64',
+      dirty     => 1,
       auto      => 1,
   );
 
@@ -45,6 +47,7 @@ Alternatively you could call each method individually
   __PACKAGE__->digest_columns(qw/ password /);
   __PACKAGE__->digest_algorithm('MD5');
   __PACKAGE__->digest_encoding('base64');
+  __PACKAGE__->digest_dirty(1);
   __PACKAGE__->digest_auto(1);
 
 
@@ -72,6 +75,7 @@ digest, you can set L</digest_algorithm>:
       columns   => [qw/ password /],
       algorithm => $algorithm',
       encoding  => $encoding,
+      dirty     => 1,
       auto      => 1,
   );
 
@@ -87,6 +91,7 @@ sub digestcolumns {
     $self->digest_algorithm( $args{algorithm} ) if exists $args{algorithm};
     $self->digest_encoding( $args{encoding} ) if exists $args{encoding};
     $self->digest_auto( $args{auto} ) if exists $args{auto};
+    $self->digest_dirty( $args{dirty} ) if exists $args{dirty};
 }
 
 =head2 digest_columns
@@ -188,12 +193,42 @@ sub _get_digest_string {
         $digest_string = eval { $self->digest_maker->hexdigest };
     
     } else {
-        $digest_string = eval { $self->digest_maker->b64digest } || eval {
-$self->digest_maker->base64digest };
+        $digest_string = eval { $self->digest_maker->b64digest } || 
+	    eval {$self->digest_maker->base64digest };
     };
     
-    $self->throw_exception("could not get a digest string: $@") unless defined( $digest_string );
+    $self->throw_exception("could not get a digest string: $@") 
+	unless defined( $digest_string );
+
     return $digest_string;
+}
+
+=head2 _digest_column_values
+
+Handles the actual encoding of column values into digests.
+
+This method is called by insert and update when automatic digests
+are turned on. If dirty is enabled it will only digest the values
+of dirtied columns.
+
+=cut
+
+sub _digest_column_values{
+    my $self = shift;
+
+    for my $col (@{$self->digest_auto_columns}) {
+	#if dirty is required then don't update unchanged columns
+	next if $self->digest_dirty && 
+	    !$self->is_column_changed( $col ) &&  $self->in_storage;
+	
+	
+	#don't digest null columns
+	my $col_v = $self->get_column( $col );
+	next unless defined $col_v;
+	    
+	#update column value with encoded value if needed
+	$self->set_column( $col, $self->_get_digest_string( $col_v ) );
+    }    
 }
 
 =head2 digest_auto
@@ -204,6 +239,17 @@ Turns on and off automatic digest columns.  When on, this feature makes all
 UPDATEs and INSERTs automatically insert a message digest of selected columns.
 
 The default is for digest_auto is to be on.
+
+=head2 digest_dirty
+
+  __PACKAGE__->digest_dirty(1);
+
+Turns on and off the limiting of automatic digests to only dirty columns.
+When on, only columns that have been dirtied will have their values digested
+during UPDATEs and INSERTs. If auto is set to off this option does nothing.
+
+The default is for digest_dirty is to be off to mantain compatibility with older
+versions of this module.
 
 =head1 EXTENDED METHODS
 
@@ -217,12 +263,7 @@ The following L<DBIx::Class::Row> methods are extended by this module:-
 
 sub insert {
     my $self = shift;
-    if ($self->digest_auto) {
-        for my $column (@{$self->digest_auto_columns}) {
-            $self->set_column( $column, $self->_get_digest_string($self->get_column( $column )) )
-                if defined $self->get_column( $column );
-        }
-    }
+    $self->_digest_column_values if $self->digest_auto;
     $self->next::method(@_);
 }
 
@@ -232,12 +273,7 @@ sub insert {
 
 sub update {
     my $self = shift;
-    if ($self->digest_auto) {
-        for my $column (@{$self->digest_auto_columns}) {
-            $self->set_column( $column, $self->_get_digest_string($self->get_column( $column )) )
-                if defined $self->get_column( $column );
-        }
-    }
+    $self->_digest_column_values if $self->digest_auto;
     $self->next::method(@_);
 }
 
@@ -254,6 +290,9 @@ L<Digest>
 =head1 AUTHOR
 
 Tom Kirkpatrick (tkp) <tkp@cpan.org>
+
+With contributions from
+Guillermo Roditi (groditi) <groditi@cpan.org>
 
 =head1 LICENSE
 

@@ -29,7 +29,9 @@ sub init_schema {
     my $dsn = "dbi:SQLite:${db_file}";
     
     my $schema = DigestTest::Schema->compose_connection('DigestTest' => $dsn);
+#    print $schema->storage->deployment_statements($schema);
     $schema->deploy();
+
     
     return $schema;
 }

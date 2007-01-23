@@ -1,8 +1,11 @@
 ---
 name: DBIx-Class-DigestColumns
-version: 0.02000
+version: 0.03000
 author:
   - 'Tom Kirkpatrick (tkp) <tkp@cpan.org>'
+  - |-
+    With contributions from
+    Guillermo Roditi (groditi) <groditi@cpan.org>
 abstract: Automatic digest columns
 license: perl
 resources:
@@ -26,8 +29,8 @@ recommends:
 provides:
   DBIx::Class::DigestColumns:
     file: lib/DBIx/Class/DigestColumns.pm
-    version: 0.02000
-generated_by: Module::Build version 0.28
+    version: 0.03000
+generated_by: Module::Build version 0.2805
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.2.html
   version: 1.2

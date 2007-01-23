@@ -19,6 +19,8 @@ t/11crc.t
 t/12whirlpool.t
 t/13alder32.t
 t/14havel256.t.disabled
+t/15dirty.t
 t/lib/DigestTest.pm
 t/lib/DigestTest/Schema.pm
 t/lib/DigestTest/Schema/Test.pm
+t/lib/DigestTest/Schema/Test2.pm

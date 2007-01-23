@@ -10,6 +10,7 @@ SYNOPSIS
           columns   => [qw/ password /],
           algorithm => 'MD5',
           encoding  => 'base64',
+          dirty     => 1,
           auto      => 1,
       );
 
@@ -20,6 +21,7 @@ SYNOPSIS
       __PACKAGE__->digest_columns(qw/ password /);
       __PACKAGE__->digest_algorithm('MD5');
       __PACKAGE__->digest_encoding('base64');
+      __PACKAGE__->digest_dirty(1);
       __PACKAGE__->digest_auto(1);
 
 DESCRIPTION
@@ -42,6 +44,7 @@ METHODS
           columns   => [qw/ password /],
           algorithm => $algorithm',
           encoding  => $encoding,
+          dirty     => 1,
           auto      => 1,
       );
 
@@ -94,6 +97,13 @@ METHODS
 
     digest_encoding defaults to "hex".
 
+  _digest_column_values
+    Handles the actual encoding of column values into digests.
+
+    This method is called by insert and update when automatic digests are
+    turned on. If dirty is enabled it will only digest the values of dirtied
+    columns.
+
   digest_auto
       __PACKAGE__->digest_auto(1);
 
@@ -102,6 +112,17 @@ METHODS
     selected columns.
 
     The default is for digest_auto is to be on.
+
+  digest_dirty
+      __PACKAGE__->digest_dirty(1);
+
+    Turns on and off the limiting of automatic digests to only dirty
+    columns. When on, only columns that have been dirtied will have their
+    values digested during UPDATEs and INSERTs. If auto is set to off this
+    option does nothing.
+
+    The default is for digest_dirty is to be off to mantain compatibility
+    with older versions of this module.
 
 EXTENDED METHODS
     The following DBIx::Class::Row methods are extended by this module:-
@@ -114,6 +135,8 @@ SEE ALSO
 
 AUTHOR
     Tom Kirkpatrick (tkp) <tkp@cpan.org>
+
+    With contributions from Guillermo Roditi (groditi) <groditi@cpan.org>
 
 LICENSE
     You may distribute this code under the same terms as Perl itself.
