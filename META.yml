@@ -1,6 +1,6 @@
 ---
 name: DBIx-Class-DigestColumns
-version: 0.03000
+version: 0.04000
 author:
   - 'Tom Kirkpatrick (tkp) <tkp@cpan.org>'
   - |-
@@ -29,7 +29,7 @@ recommends:
 provides:
   DBIx::Class::DigestColumns:
     file: lib/DBIx/Class/DigestColumns.pm
-    version: 0.03000
+    version: 0.04000
 generated_by: Module::Build version 0.2805
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.2.html

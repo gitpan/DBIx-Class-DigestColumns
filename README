@@ -97,8 +97,15 @@ METHODS
 
     digest_encoding defaults to "hex".
 
+  _get_digest_string $value
+    Handles the actual encoding of column values into digests. When given a
+    $value it will return the digest string for that value. This is the
+    method used by "_digest_column_values" So you can use it to create an
+    identical digest if you need one for comparison (e.g. password
+    authentication).
+
   _digest_column_values
-    Handles the actual encoding of column values into digests.
+    Go through the columns and digest the values that need it.
 
     This method is called by insert and update when automatic digests are
     turned on. If dirty is enabled it will only digest the values of dirtied

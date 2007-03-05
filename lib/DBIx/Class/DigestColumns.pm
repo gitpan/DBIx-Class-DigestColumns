@@ -20,7 +20,7 @@ __PACKAGE__->digest_encoding('hex');
 # i.e. first release of 0.XX *must* be 0.XX000. This avoids fBSD ports
 # brain damage and presumably various other packaging systems too
 
-$VERSION = '0.03000';
+$VERSION = '0.04000';
 
 =head1 NAME
 
@@ -180,6 +180,16 @@ sub digest_encoding {
     return $self->encoding;
 }
 
+=head2 _get_digest_string $value
+
+Handles the actual encoding of column values into digests.
+When given a C<$value> it will return the digest string for
+that value. This is the method used by C<_digest_column_values>
+So you can use it to create an identical digest if you need one
+for comparison (e.g. password authentication).
+
+=cut
+
 sub _get_digest_string {
     my ($self, $value) = @_;
     my $digest_string;
@@ -205,7 +215,7 @@ sub _get_digest_string {
 
 =head2 _digest_column_values
 
-Handles the actual encoding of column values into digests.
+Go through the columns and digest the values that need it.
 
 This method is called by insert and update when automatic digests
 are turned on. If dirty is enabled it will only digest the values
@@ -272,9 +282,16 @@ sub insert {
 =cut
 
 sub update {
-    my $self = shift;
+    my ( $self, $upd, @rest ) = @_;
+    if ( ref $upd ) {
+        $upd = { %$upd }; # local copy; leave caller's $upd alone
+        for my $col ( @{$self->digest_auto_columns} ) {
+	    $self->set_column($col => delete $upd->{$col}) 
+		if ( exists $upd->{$col} );
+        }
+    }
     $self->_digest_column_values if $self->digest_auto;
-    $self->next::method(@_);
+    $self->next::method($upd, @rest);
 }
 
 1;
