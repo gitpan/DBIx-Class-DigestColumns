@@ -53,9 +53,12 @@ Options added to add_column
     boolean value indicating whether this method matches the
     currently_stored value.
 
+      $row->password('old_password');
+      $row->update;
       $row->password('new_password');
       $row->check_password('new_password'); #returns true
-      $row->check_password('new_password'); #returns false
+      $row->check_password('old_password'); #returns false
+      $row->update;
 
 METHODS
   digestcolumns

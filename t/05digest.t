@@ -5,7 +5,7 @@ use Class::ISA;
 
 BEGIN {
     plan eval "require Digest"
-        ? ( tests => 9 )	
+        ? ( tests => 10 )	
         : ( skip_all => 'needs Digest for testing' );
 }
 
@@ -42,6 +42,7 @@ DigestTest::Schema::Test->digest_auto(0);
 Class::C3->reinitialize();
 $row->password('testvalue2');
 $row->update;
+ok !$row->check_password('testvalue2');
 is $row->password, 'testvalue2', 'digest_auto off';
 
 1;

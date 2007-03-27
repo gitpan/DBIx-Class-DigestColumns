@@ -20,7 +20,7 @@ __PACKAGE__->digest_encoding('hex');
 # i.e. first release of 0.XX *must* be 0.XX000. This avoids fBSD ports
 # brain damage and presumably various other packaging systems too
 
-$VERSION = '0.05000';
+$VERSION = '0.06000';
 
 =head1 NAME
 
@@ -83,9 +83,12 @@ can create a check method for that column. The check method accepts a
 plain text string, performs the correct digest on it and returns a boolean
 value indicating whether this method matches the currently_stored value.
 
+  $row->password('old_password');
+  $row->update;
   $row->password('new_password');
   $row->check_password('new_password'); #returns true
-  $row->check_password('new_password'); #returns false
+  $row->check_password('old_password'); #returns false
+  $row->update;
 
 =head1 METHODS
 
@@ -125,7 +128,8 @@ sub register_column {
 	    my $col_value = $self->get_column($column);
 	    #make sure we DTRT if column is dirty
 	    $col_value = $self->_get_digest_string($col_value)
-		if $self->is_column_changed($column);
+		if $self->is_column_changed($column) && $self->digest_auto;
+
 	    return $col_value eq $self->_get_digest_string($value);
 	};
     }

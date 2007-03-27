@@ -1,3 +1,6 @@
+0.06000 2007-03-27
+	- POD oops
+	- digest_auto oops
 0.05000 2007-03-27
 	- Local copy of args in ->update unnecessary
 	- Added test for Marc's patch
