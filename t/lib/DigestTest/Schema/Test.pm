@@ -14,6 +14,7 @@ __PACKAGE__->add_columns(
   'password' => {
     data_type => 'varchar',
     size      => 100,
+    digest_check_method => 'check_password',
   }
 );
 

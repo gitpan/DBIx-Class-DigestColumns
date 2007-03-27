@@ -20,7 +20,7 @@ __PACKAGE__->digest_encoding('hex');
 # i.e. first release of 0.XX *must* be 0.XX000. This avoids fBSD ports
 # brain damage and presumably various other packaging systems too
 
-$VERSION = '0.04000';
+$VERSION = '0.05000';
 
 =head1 NAME
 
@@ -32,6 +32,13 @@ In your L<DBIx::Class> table class:
 
   __PACKAGE__->load_components(qw/DigestColumns ... Core/);
 
+  #automatically generate a method "check_password" in result class
+  __PACKAGE__->add_columns(
+    'password' => {
+      data_type => 'char',
+      size      => 32,
+      digest_check_method => 'check_password',
+  }
   __PACKAGE__->digestcolumns(
       columns   => [qw/ password /],
       algorithm => 'MD5',
@@ -67,6 +74,19 @@ digest, you can set L</digest_algorithm>:
 
   __PACKAGE__->digest_algorithm('SHA-1');
 
+=head1 Options added to add_column
+
+=head2 digest_check_method => $method_name
+
+By using the digest_check_method attribute when you declare a column you
+can create a check method for that column. The check method accepts a 
+plain text string, performs the correct digest on it and returns a boolean
+value indicating whether this method matches the currently_stored value.
+
+  $row->password('new_password');
+  $row->check_password('new_password'); #returns true
+  $row->check_password('new_password'); #returns false
+
 =head1 METHODS
 
 =head2 digestcolumns
@@ -81,6 +101,40 @@ digest, you can set L</digest_algorithm>:
 
 Calls L</digest_columns>, L</digest_algorithm>, and L</digest_encoding> and L</digest_auto> if the
 corresponding argument is defined.
+
+=cut
+
+sub register_column {
+    my ($self, $column, $info, @rest) = @_;
+    $self->next::method($column, $info, @rest);
+    
+    return unless defined $info->{'digest_check_method'};
+
+    my $method_name = $info->{'digest_check_method'};
+    my $result_class = $self->result_class;
+    #don't overwrite another method
+    $self->throw_exception("Can't create digest_check_method ${method_name}. ".
+			   "{$method_name} already exists.") 
+	if $self->can($method_name) || $result_class->can($method_name);;
+    my $class_method_name = $result_class."::".$method_name;
+
+    {
+	no strict 'refs';
+	*$class_method_name = sub{
+	    my ($self, $value) = @_;
+	    my $col_value = $self->get_column($column);
+	    #make sure we DTRT if column is dirty
+	    $col_value = $self->_get_digest_string($col_value)
+		if $self->is_column_changed($column);
+	    return $col_value eq $self->_get_digest_string($value);
+	};
+    }
+}
+
+=head2 register_column
+
+Override the original register_column to handle the creation of
+check methods.
 
 =cut
 
@@ -284,7 +338,6 @@ sub insert {
 sub update {
     my ( $self, $upd, @rest ) = @_;
     if ( ref $upd ) {
-        $upd = { %$upd }; # local copy; leave caller's $upd alone
         for my $col ( @{$self->digest_auto_columns} ) {
 	    $self->set_column($col => delete $upd->{$col}) 
 		if ( exists $upd->{$col} );
@@ -310,6 +363,7 @@ Tom Kirkpatrick (tkp) <tkp@cpan.org>
 
 With contributions from
 Guillermo Roditi (groditi) <groditi@cpan.org>
+and Marc Mims <marc@questright.com>
 
 =head1 LICENSE
 

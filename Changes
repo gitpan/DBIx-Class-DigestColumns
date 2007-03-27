@@ -1,6 +1,10 @@
+0.05000 2007-03-27
+	- Local copy of args in ->update unnecessary
+	- Added test for Marc's patch
+	- Add digest_check_method functionality
+
 0.04000	2007-03-05
-	-Patch by Marc Mims to fix ->update bug
-	-Added test for Marc's patch
+	- Patch by Marc Mims to fix ->update bug
 
 0.03000	2007-01-23
 	- Added dirty option
