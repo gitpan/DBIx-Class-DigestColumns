@@ -1,4 +1,4 @@
-package # hide from PAUSE 
+package # hide from PAUSE
     DigestTest;
 
 use strict;
@@ -8,14 +8,14 @@ use DigestTest::Schema;
 sub initialise {
 
   my $db_file = "t/var/DigestTest.db";
-  
+
   unlink($db_file) if -e $db_file;
   unlink($db_file . "-journal") if -e $db_file . "-journal";
   mkdir("t/var") unless -d "t/var";
-  
+
   my $dsn = "dbi:SQLite:${db_file}";
-  
-  return DigestTest::Schema->compose_connection('DigestTest' => $dsn);
+
+  return DigestTest::Schema->connect($dsn);
 }
 
 sub init_schema {
@@ -27,12 +27,12 @@ sub init_schema {
     mkdir("t/var") unless -d "t/var";
 
     my $dsn = "dbi:SQLite:${db_file}";
-    
-    my $schema = DigestTest::Schema->compose_connection('DigestTest' => $dsn);
+
+    my $schema = DigestTest::Schema->connect($dsn);
 #    print $schema->storage->deployment_statements($schema);
     $schema->deploy();
 
-    
+
     return $schema;
 }
 

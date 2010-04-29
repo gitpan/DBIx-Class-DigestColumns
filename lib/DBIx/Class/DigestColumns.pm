@@ -20,7 +20,7 @@ __PACKAGE__->digest_encoding('hex');
 # i.e. first release of 0.XX *must* be 0.XX000. This avoids fBSD ports
 # brain damage and presumably various other packaging systems too
 
-$VERSION = '0.06000';
+$VERSION = '0.06001_01';
 
 =head1 NAME
 
@@ -49,7 +49,7 @@ In your L<DBIx::Class> table class:
 
 B<Note:> The component needs to be loaded I<before> Core.
 
-Alternatively you could call each method individually  
+Alternatively you could call each method individually
 
   __PACKAGE__->digest_columns(qw/ password /);
   __PACKAGE__->digest_algorithm('MD5');
@@ -79,7 +79,7 @@ digest, you can set L</digest_algorithm>:
 =head2 digest_check_method => $method_name
 
 By using the digest_check_method attribute when you declare a column you
-can create a check method for that column. The check method accepts a 
+can create a check method for that column. The check method accepts a
 plain text string, performs the correct digest on it and returns a boolean
 value indicating whether this method matches the currently_stored value.
 
@@ -110,28 +110,28 @@ corresponding argument is defined.
 sub register_column {
     my ($self, $column, $info, @rest) = @_;
     $self->next::method($column, $info, @rest);
-    
+
     return unless defined $info->{'digest_check_method'};
 
     my $method_name = $info->{'digest_check_method'};
     my $result_class = $self->result_class;
     #don't overwrite another method
     $self->throw_exception("Can't create digest_check_method ${method_name}. ".
-			   "{$method_name} already exists.") 
-	if $self->can($method_name) || $result_class->can($method_name);;
+            "{$method_name} already exists.")
+   if $self->can($method_name) || $result_class->can($method_name);;
     my $class_method_name = $result_class."::".$method_name;
 
     {
-	no strict 'refs';
-	*$class_method_name = sub{
-	    my ($self, $value) = @_;
-	    my $col_value = $self->get_column($column);
-	    #make sure we DTRT if column is dirty
-	    $col_value = $self->_get_digest_string($col_value)
-		if $self->is_column_changed($column) && $self->digest_auto;
+   no strict 'refs';
+   *$class_method_name = sub{
+       my ($self, $value) = @_;
+       my $col_value = $self->get_column($column);
+       #make sure we DTRT if column is dirty
+       $col_value = $self->_get_digest_string($col_value)
+      if $self->is_column_changed($column) && $self->digest_auto;
 
-	    return $col_value eq $self->_get_digest_string($value);
-	};
+       return $col_value eq $self->_get_digest_string($value);
+   };
     }
 }
 
@@ -202,7 +202,7 @@ sub digest_algorithm {
 
     if ($class) {
         if (!eval { Digest->new($class) }) {
-            $self->throw_exception("$class could not be used as a digest algorithm: $@");           
+            $self->throw_exception("$class could not be used as a digest algorithm: $@");
         } else {
             $self->digest_maker(Digest->new($class));
         };
@@ -230,7 +230,7 @@ sub digest_encoding {
     my ($self, $encoding) = @_;
     if ($encoding) {
         if ($encoding =~ /^(?:binary|hex|base64)$/) {
-            $self->encoding($encoding); 
+            $self->encoding($encoding);
         } else {
             $self->throw_exception("$encoding is not a supported encoding scheme");
         };
@@ -251,22 +251,22 @@ for comparison (e.g. password authentication).
 sub _get_digest_string {
     my ($self, $value) = @_;
     my $digest_string;
-    
+
     $self->digest_maker->add($value);
 
     if ($self->encoding eq 'binary') {
         $digest_string = eval { $self->digest_maker->digest };
-    
+
     } elsif ($self->encoding eq 'hex') {
         $digest_string = eval { $self->digest_maker->hexdigest };
-    
+
     } else {
-        $digest_string = eval { $self->digest_maker->b64digest } || 
-	    eval {$self->digest_maker->base64digest };
+        $digest_string = eval { $self->digest_maker->b64digest } ||
+       eval {$self->digest_maker->base64digest };
     };
-    
-    $self->throw_exception("could not get a digest string: $@") 
-	unless defined( $digest_string );
+
+    $self->throw_exception("could not get a digest string: $@")
+   unless defined( $digest_string );
 
     return $digest_string;
 }
@@ -285,18 +285,18 @@ sub _digest_column_values{
     my $self = shift;
 
     for my $col (@{$self->digest_auto_columns}) {
-	#if dirty is required then don't update unchanged columns
-	next if $self->digest_dirty && 
-	    !$self->is_column_changed( $col ) &&  $self->in_storage;
-	
-	
-	#don't digest null columns
-	my $col_v = $self->get_column( $col );
-	next unless defined $col_v;
-	    
-	#update column value with encoded value if needed
-	$self->set_column( $col, $self->_get_digest_string( $col_v ) );
-    }    
+   #if dirty is required then don't update unchanged columns
+   next if $self->digest_dirty &&
+       !$self->is_column_changed( $col ) &&  $self->in_storage;
+
+
+   #don't digest null columns
+   my $col_v = $self->get_column( $col );
+   next unless defined $col_v;
+
+   #update column value with encoded value if needed
+   $self->set_column( $col, $self->_get_digest_string( $col_v ) );
+    }
 }
 
 =head2 digest_auto
@@ -343,8 +343,8 @@ sub update {
     my ( $self, $upd, @rest ) = @_;
     if ( ref $upd ) {
         for my $col ( @{$self->digest_auto_columns} ) {
-	    $self->set_column($col => delete $upd->{$col}) 
-		if ( exists $upd->{$col} );
+       $self->set_column($col => delete $upd->{$col})
+      if ( exists $upd->{$col} );
         }
     }
     $self->_digest_column_values if $self->digest_auto;

@@ -3,14 +3,14 @@ use warnings;
 use Test::More;
 
 BEGIN {
-	if ( !eval "require Digest" ) {
-		plan skip_all => 'needs Digest for testing';
-	
-	} elsif ( !eval "require Digest::Whirlpool" ) {
-		plan skip_all => 'needs Digest::Whirlpool for testing';
-	} else {
-		plan tests => 2;
-	};
+   if ( !eval "require Digest" ) {
+      plan skip_all => 'needs Digest for testing';
+
+   } elsif ( !eval "require Digest::Whirlpool" ) {
+      plan skip_all => 'needs Digest::Whirlpool for testing';
+   } else {
+      plan tests => 2;
+   };
 }
 
 use lib qw(t/lib);
@@ -30,7 +30,7 @@ DigestTest::Schema::Test->digest_algorithm('Whirlpool');
 DigestTest::Schema::Test->digest_encoding('base64');
 Class::C3->reinitialize();
 $row = $schema->resultset('Test')->create({ password => 'testvalue' });
-is $row->password, 'ZVElmK91CEZqCHRKbtCKU+GskXPZzYZY5MqiReANNukrX1iALnA/I+ASOB1ioWYbrQ7mAcHKloT5iyNpslkmPg==', 'got base64 Whirlpool from Digest';
+is $row->password, 'ZVElmK91CEZqCHRKbtCKU+GskXPZzYZY5MqiReANNukrX1iALnA/I+ASOB1ioWYbrQ7mAcHKloT5iyNpslkmPg', 'got base64 Whirlpool from Digest';
 
 
 1;

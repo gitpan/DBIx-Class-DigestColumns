@@ -1,37 +1,33 @@
 ---
-name: DBIx-Class-DigestColumns
-version: 0.06000
+abstract: 'Automatic digest columns'
 author:
   - 'Tom Kirkpatrick (tkp) <tkp@cpan.org>'
-  - |-
-    With contributions from
-    Guillermo Roditi (groditi) <groditi@cpan.org>
-    and Marc Mims <marc@questright.com>
-abstract: Automatic digest columns
+build_requires:
+  DBD::SQLite: 1.25
+  ExtUtils::MakeMaker: 6.42
+  SQL::Translator: 0.11005
+configure_requires:
+  DBIx::Class: 0.08121
+  ExtUtils::MakeMaker: 6.42
+distribution_type: module
+generated_by: 'Module::Install version 0.95'
 license: perl
-resources:
-  license: http://dev.perl.org/licenses/
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: 1.4
+name: DBIx-Class-DigestColumns
+no_index:
+  directory:
+    - inc
+    - t
 requires:
-  DBIx::Class: 0.06002
+  DBIx::Class: 0.08121
   Digest: 1.11
   Digest::MD5: 0
-build_requires:
-  DBD::SQLite: 1.11
-recommends:
-  Digest::Adler32: 0
-  Digest::CRC: 0
-  Digest::HMAC_MD5: 0
-  Digest::HMAC_SHA1: 0
-  Digest::Haval256: 0
-  Digest::MD2: 0
-  Digest::MD4: 0
   Digest::SHA: 0
-  Digest::Whirlpool: 0
-provides:
-  DBIx::Class::DigestColumns:
-    file: lib/DBIx/Class/DigestColumns.pm
-    version: 0.06000
-generated_by: Module::Build version 0.2805
-meta-spec:
-  url: http://module-build.sourceforge.net/META-spec-v1.2.html
-  version: 1.2
+  perl: 5.8.1
+resources:
+  IRC: irc://irc.perl.org/#dbix-class
+  license: http://dev.perl.org/licenses/
+  repository: http://dev.catalyst.perl.org/repos/bast/trunk/DBIx-Class-DigestColumns/
+version: 0.06001_01

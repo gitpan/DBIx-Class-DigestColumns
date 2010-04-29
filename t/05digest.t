@@ -1,11 +1,10 @@
 use strict;
 use warnings;
 use Test::More;
-use Class::ISA;
 
 BEGIN {
     plan eval "require Digest"
-        ? ( tests => 10 )	
+        ? ( tests => 10 )
         : ( skip_all => 'needs Digest for testing' );
 }
 
